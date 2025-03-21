@@ -36,6 +36,10 @@ class platforms():
     @staticmethod
     def update():
         keys = pygame.key.get_pressed()
+        if keys[pygame.K_r]:
+            platforms.leftRect.y = HEIGHT / 2
+            platforms.rightRect.y = HEIGHT / 2
+
         if keys[pygame.K_w] and not platforms.leftRect.y == 0:
             platforms.leftRect.y = platforms.leftRect.y - platforms.speed
         if keys[pygame.K_s] and not platforms.leftRect.y == HEIGHT - platforms.height:
@@ -53,18 +57,52 @@ class ball:
     X = WIDTH / 2
     Y = HEIGHT / 2
     cooldown = 0
+    score = [0,0]
+    pause = 0
     @staticmethod
     def process():
+        keys = pygame.key.get_pressed()
         if ball.cooldown != 0:
             ball.cooldown -= 1
+
+        if keys[pygame.K_r]:
+            ball.X = WIDTH/2
+            ball.Y = HEIGHT/2
+            ball.alpha = 60
+            ball.score = [0,0]
+
+        if keys[pygame.K_p]:
+            ball.pause += 1
+            ball.velocity = 0
+        if ball.pause == 2:
+            ball.pause = 0
+            ball.velocity = 5
+
         if ball.Y <= 0 or ball.Y >= HEIGHT:
             ball.alpha = -1*ball.alpha
+
+        if ball.X <= 0:
+            ball.score[1] += 1
+            print(ball.score)
+            ball.X = WIDTH/2
+            ball.Y = HEIGHT/2
+            ball.alpha = randint(120, 240)
+
+        if ball.X >= WIDTH:
+            ball.score[0] += 1
+            print(ball.score)
+            ball.X = WIDTH/2
+            ball.Y = HEIGHT/2
+            ball.alpha = randint(-60, 60)
+
         rect = ball.surf.get_rect(topleft=(ball.X, ball.Y))
+
         if not ball.cooldown:
             if rect.colliderect(platforms.rightRect):
                 ball.alpha = randint(120,240)
             if rect.colliderect(platforms.leftRect):
                 ball.alpha = randint(-60,60)
+
         ball.X += math.cos(math.pi*ball.alpha/180*-1)*ball.velocity
         ball.Y += math.sin(math.pi*ball.alpha/180*-1)*ball.velocity
         screen.blit(ball.surf, (ball.X, ball.Y))
