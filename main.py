@@ -9,6 +9,14 @@ HEIGHT = 600
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
+def sigh(num):
+    if num > 0:
+        return 1
+    elif num < 0:
+        return -1
+    else:
+        return 0
+
 class background:
     left_side = pygame.Surface((WIDTH / 2, HEIGHT))
     right_side = pygame.Surface((WIDTH / 2, HEIGHT))
@@ -52,19 +60,18 @@ class platforms():
 class ball:
     surf = pygame.Surface((20,20), pygame.SRCALPHA)
     alpha = 60
-    velocity = 5
+    velocity = [0.0,0.0]
+    speed = 5
     surf.fill((0,0,0,0))
     X = WIDTH / 2
     Y = HEIGHT / 2
     cooldown = 0
     score = [0,0]
     pause = 0
-    @staticmethod
-    def process():
-        keys = pygame.key.get_pressed()
-        if ball.cooldown != 0:
-            ball.cooldown -= 1
 
+    @staticmethod
+    def control():
+        keys = pygame.key.get_pressed()
         if keys[pygame.K_r]:
             ball.X = WIDTH/2
             ball.Y = HEIGHT/2
@@ -78,22 +85,13 @@ class ball:
             ball.pause = 0
             ball.velocity = 5
 
+    @staticmethod
+    def ricoshet():
+        if ball.cooldown != 0:
+            ball.cooldown -= 1
+
         if ball.Y <= 0 or ball.Y >= HEIGHT:
             ball.alpha = -1*ball.alpha
-
-        if ball.X <= 0:
-            ball.score[1] += 1
-            print(ball.score)
-            ball.X = WIDTH/2
-            ball.Y = HEIGHT/2
-            ball.alpha = randint(120, 240)
-
-        if ball.X >= WIDTH:
-            ball.score[0] += 1
-            print(ball.score)
-            ball.X = WIDTH/2
-            ball.Y = HEIGHT/2
-            ball.alpha = randint(-60, 60)
 
         rect = ball.surf.get_rect(topleft=(ball.X, ball.Y))
 
@@ -103,8 +101,42 @@ class ball:
             if rect.colliderect(platforms.leftRect):
                 ball.alpha = randint(-60,60)
 
-        ball.X += math.cos(math.pi*ball.alpha/180*-1)*ball.velocity
-        ball.Y += math.sin(math.pi*ball.alpha/180*-1)*ball.velocity
+    @staticmethod
+    def count():
+        if ball.X <= 0:
+            ball.score[1] += 1
+            print(ball.score)
+            ball.X = WIDTH / 2
+            ball.Y = HEIGHT / 2
+            ball.alpha = randint(120, 240)
+
+        if ball.X >= WIDTH:
+            ball.score[0] += 1
+            print(ball.score)
+            ball.X = WIDTH / 2
+            ball.Y = HEIGHT / 2
+            ball.alpha = randint(-60, 60)
+
+    @staticmethod
+    def float():
+        ball.velocity[0] = math.cos(math.pi * ball.alpha / 180 * -1)
+        ball.velocity[1] = math.sin(math.pi * ball.alpha / 180 * -1)
+        ball.X += ball.velocity[0] * ball.speed
+        ball.Y += ball.velocity[1] * ball.speed
+
+    @staticmethod
+    def project():
+        final_y = ball.Y * ball.velocity[1] * WIDTH/(ball.X *ball.velocity[0])
+        return final_y
+
+    @staticmethod
+    def process():
+        ball.control()
+        ball.ricoshet()
+        ball.count()
+        ball.float()
+        ball.project()
+
         screen.blit(ball.surf, (ball.X, ball.Y))
         pygame.draw.ellipse(ball.surf, (100,100,100), ball.surf.get_rect())
 
